@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Microplastic Analyzer Pro — Modern Scientific UI</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Space+Grotesk:wght@600&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.47.0/iconfont/tabler-icons.min.css" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0f1720;             /* deep background */
+    --surface:#0b0f13;        /* app surface */
+    --card:#0e1417;           /* card background */
+    --muted:#98A3A3;
+    --text:#E6F0EF;
+    --accent-teal:#16A085;
+    --accent-blue:#3A7BD5;
+    --accent-amber:#F6A623;
+    --accent-purple:#6B4FB3;
+    --danger:#E06C60;
+    --glass: rgba(255,255,255,0.03);
+    --radius:12px;
+    --soft-radius:8px;
+    --border: rgba(255,255,255,0.04);
+    --shadow-lg: 0 12px 40px rgba(0,0,0,0.6);
+    --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto;
+    background:linear-gradient(180deg,#071019 0%,#0f1720 100%);
+    color:var(--text);
+    padding:20px;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+  }
+
+  /* App frame */
+  .app{
+    width:100%;max-width:1280px;height:820px;margin:0 auto;border-radius:14px;overflow:hidden;
+    background:linear-gradient(180deg,var(--surface),#071014 120%); border:1px solid var(--border);
+    box-shadow:var(--shadow-lg); display:grid;
+    grid-template-columns:320px 1fr; grid-template-rows:72px 1fr 44px; gap:14px;
+  }
+
+  /* Top bar */
+  .topbar{grid-column:1/-1;display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid rgba(255,255,255,0.02)}
+  .brand{display:flex;align-items:center;gap:12px}
+  .brand-mark{width:48px;height:48;border-radius:10px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--accent-teal),#0b7f6c);font-weight:700;font-family:'Space Grotesk';color:#fff}
+  .brand-title{font-family:'Space Grotesk';font-weight:700;font-size:16px}
+  .brand-sub{font-size:12px;color:var(--muted)}
+
+  .menu{display:flex;gap:10px;margin-left:18px}
+  .menu button{background:transparent;border:0;color:var(--muted);padding:8px 10px;border-radius:8px;font-weight:600;cursor:pointer}
+  .menu button:hover{color:var(--text);background:var(--glass)}
+
+  .top-actions{margin-left:auto;display:flex;gap:8px;align-items:center}
+  .icon-btn{width:40px;height:40;border-radius:10px;border:1px solid transparent;background:transparent;color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .icon-btn:hover{background:var(--glass);color:var(--text)}
+  .primary-action{background:linear-gradient(180deg,var(--accent-teal),#0b7f6c);color:#fff;border:0;padding:8px 14px;border-radius:10px;font-weight:700;cursor:pointer}
+  .primary-action:hover{filter:brightness(.95)}
+
+  /* Sidebar */
+  .sidebar{padding:16px;background:transparent;border-right:1px solid rgba(255,255,255,0.02);overflow:auto}
+  .section-title{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;font-weight:700}
+  .card{background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);border:1px solid rgba(255,255,255,0.02);padding:12px;border-radius:12px;margin-bottom:12px;box-shadow:0 6px 18px rgba(2,6,8,0.45)}
+  .controls-column{display:flex;flex-direction:column;gap:10px}
+
+  .btn{
+    display:inline-flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.02);
+    background:linear-gradient(180deg,#0f1717,#081011);color:var(--text);cursor:pointer;font-weight:700;transition:transform .08s ease, box-shadow .08s ease;
+  }
+  .btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.5)}
+  .btn.ghost{background:transparent;border:1px dashed rgba(255,255,255,0.02);color:var(--muted)}
+  .btn.teal{background:linear-gradient(180deg,var(--accent-teal),#0b7f6c);color:#fff;border:0}
+  .btn.blue{background:linear-gradient(180deg,var(--accent-blue),#2b64b8);color:#fff;border:0}
+  .btn.amber{background:linear-gradient(180deg,var(--accent-amber),#c4852f);color:#111;border:0}
+  .btn.purple{background:linear-gradient(180deg,var(--accent-purple),#593ca3);color:#fff;border:0}
+  .muted-small{color:var(--muted);font-size:13px}
+
+  .param-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .param-item{display:flex;flex-direction:column;gap:6px}
+  .label{font-size:13px;color:var(--muted)}
+  .input, select{padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:#071014;color:var(--text);font-size:13px}
+
+  .big-action{padding:12px;border-radius:12px;background:linear-gradient(180deg,var(--accent-teal),#0b7f6c);color:#fff;border:0;font-weight:800;cursor:pointer}
+  .big-action.accent{background:linear-gradient(180deg,var(--accent-blue),#2b64b8)}
+
+  /* Main area */
+  .main{padding:16px;display:flex;flex-direction:column;gap:12px}
+  .toolbar{display:flex;gap:8px;align-items:center;padding:10px;border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);border:1px solid rgba(255,255,255,0.02)}
+  .tool{padding:8px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.02);background:transparent;color:var(--muted);font-weight:700;cursor:pointer}
+  .tool:hover{background:var(--glass);color:var(--text)}
+  .tool.primary{background:linear-gradient(180deg,var(--accent-teal),#0b7f6c);color:#fff;border:0}
+  .tool.ml{background:linear-gradient(180deg,var(--accent-purple),#593ca3);color:#fff;border:0}
+  .toolbar .separator{width:1px;height:28px;background:rgba(255,255,255,0.02);margin:0 8px}
+
+  .workspace{display:grid;grid-template-columns:1fr 420px;gap:12px;flex:1;min-height:520px}
+  .viewer{background:linear-gradient(180deg,#071014,#071217);border-radius:12px;border:1px solid rgba(255,255,255,0.02);overflow:hidden;display:flex;flex-direction:column}
+  .tabbar{display:flex;align-items:center;gap:8px;padding:10px;border-bottom:1px solid rgba(255,255,255,0.02);background:linear-gradient(180deg,transparent,rgba(255,255,255,0.01))}
+  .tab{padding:8px 12px;border-radius:8px;color:var(--muted);cursor:pointer;font-weight:700}
+  .tab.active{background:rgba(255,255,255,0.02);color:var(--text)}
+
+  .canvas{flex:1;display:flex;align-items:center;justify-content:center;position:relative;padding:18px}
+  .specimen{width:240px;height:240px;border-radius:999px;background:radial-gradient(circle at 35% 30%, rgba(255,255,255,0.02), rgba(255,255,255,0.01));display:flex;align-items:center;justify-content:center;border:1px dashed rgba(255,255,255,0.02)}
+  .canvas-cta{position:absolute;left:20px;top:18px;display:flex;gap:8px;flex-direction:column}
+
+  .zoom-float{position:absolute;right:18px;bottom:18px;background:linear-gradient(180deg,#071014,#071217);border:1px solid rgba(255,255,255,0.03);padding:8px;border-radius:999px;display:flex;gap:8px;align-items:center}
+  .zf-btn{width:36px;height:36;border-radius:8px;border:1px solid rgba(255,255,255,0.02);background:transparent;color:var(--muted);font-weight:700;cursor:pointer}
+  .zf-btn:hover{background:var(--glass);color:var(--text)}
+  .zf-box{padding:6px 10px;border-radius:8px;background:linear-gradient(180deg,#071517,#071617);color:var(--muted);font-weight:700;font-family:var(--mono);font-size:13px}
+
+  /* Right panel */
+  .panel{background:linear-gradient(180deg,#071317,#071217);border-radius:12px;border:1px solid rgba(255,255,255,0.02);padding:12px;overflow:auto}
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .stat-card{background:linear-gradient(180deg,#061212,#071316);padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.02)}
+  .stat-num{font-family:'Space Grotesk';font-size:20px;font-weight:800;color:var(--text)}
+  .stat-label{font-size:12px;color:var(--muted)}
+
+  .shape-row{display:flex;align-items:center;gap:10px;margin-top:8px}
+  .shape-name{width:120px;color:var(--muted);font-weight:700}
+  .shape-track{flex:1;height:8px;background:rgba(255,255,255,0.02);border-radius:6px;overflow:hidden;border:1px solid rgba(255,255,255,0.02)}
+  .shape-fill{height:100%;border-radius:6px}
+
+  .results-box{margin-top:12px;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.02);background:linear-gradient(180deg,#071316,#071217);color:var(--muted);min-height:80px}
+
+  /* Footer / status */
+  .status{grid-column:1/-1;display:flex;align-items:center;gap:12px;padding:10px 18px;border-top:1px solid rgba(255,255,255,0.02);color:var(--muted)}
+  .status .dot{width:10px;height:10;border-radius:50%;background:var(--accent-teal)}
+
+  /* responsive */
+  @media (max-width:1000px){
+    .app{grid-template-columns:1fr;grid-template-rows:72px auto 44px}
+    .workspace{grid-template-columns:1fr}
+    .sidebar{display:none}
+  }
+</style>
+</head>
+<body>
+  <div class="app" role="application" aria-label="Microplastic Analyzer Pro — Modern Scientific">
+    <!-- Top -->
+    <header class="topbar" role="banner">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">MP</div>
+        <div>
+          <div class="brand-title">Microplastic Analyzer Pro</div>
+          <div class="brand-sub">Modern scientific workspace</div>
+        </div>
+      </div>
+
+      <nav class="menu" aria-label="Main menu">
+        <button title="File">File</button>
+        <button title="Tools">Tools</button>
+        <button title="Machine Learning">Machine Learning</button>
+        <button title="Help">Help</button>
+      </nav>
+
+      <div class="top-actions">
+        <button class="icon-btn" id="help-btn" title="Help"><i class="ti ti-help"></i></button>
+        <button class="icon-btn" id="settings-btn" title="Settings"><i class="ti ti-settings"></i></button>
+        <button class="primary-action" id="run-compare">Run & Compare</button>
+      </div>
+    </header>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" aria-label="Controls">
+      <div class="card">
+        <div class="section-title">Image</div>
+        <div class="controls-column">
+          <button class="btn btn-teal btn" id="upload-main"><i class="ti ti-upload"></i>&nbsp; Upload Image</button>
+          <button class="btn btn" id="capture-main"><i class="ti ti-camera"></i>&nbsp; Capture from Camera</button>
+          <button class="btn btn.amber btn" id="synth-main"><i class="ti ti-wand"></i>&nbsp; Generate Synthetic</button>
+          <button class="btn btn.blue btn" id="calib-main"><i class="ti ti-ruler-2"></i>&nbsp; Calibrate Camera</button>
+          <div style="height:6px"></div>
+          <div class="muted-small">Calibration: <strong style="color:var(--accent-amber)">Not active</strong></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Quick parameters</div>
+        <div class="param-grid">
+          <div class="param-item"><span class="label">Blur</span><input class="input" id="quick-blur" value="5"></div>
+          <div class="param-item"><span class="label">Min area</span><input class="input" id="quick-min" value="20"></div>
+          <div class="param-item"><span class="label">Max area</span><input class="input" id="quick-max" value="10000"></div>
+          <div class="param-item"><span class="label">Distance thresh</span><input class="input" id="quick-dist" value="0.5"></div>
+        </div>
+        <div style="height:8px"></div>
+        <button class="big-action" id="btn-quick-left"><i class="ti ti-bolt"></i>&nbsp; Quick Analysis</button>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Synthetic</div>
+        <div class="param-grid">
+          <div class="param-item"><span class="label">Particles</span><input class="input" id="s-num" value="50"></div>
+          <div class="param-item"><span class="label">Shape</span><select class="input" id="s-shape"><option>Mixed</option><option>Fragment</option><option>Fiber</option><option>Sphere</option></select></div>
+          <div class="param-item"><span class="label">Width</span><input class="input" id="s-w" value="1280"></div>
+          <div class="param-item"><span class="label">Height</span><input class="input" id="s-h" value="1280"></div>
+        </div>
+        <div style="height:8px"></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn.teal" id="gen-synth"><i class="ti ti-wand"></i>&nbsp; Generate</button>
+          <button class="btn ghost" id="save-synth"><i class="ti ti-download"></i>&nbsp; Save</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Machine Learning</div>
+        <div class="controls-column">
+          <button class="btn btn.purple" id="ml-load"><i class="ti ti-folder-open"></i>&nbsp; Load YOLO model</button>
+          <button class="btn btn" id="ml-detect"><i class="ti ti-robot"></i>&nbsp; ML Detection</button>
+          <button class="btn btn" id="ml-bench"><i class="ti ti-report-analytics"></i>&nbsp; ML Benchmark</button>
+          <div class="muted-small" id="ml-status">Model: <strong>not loaded</strong></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Exports</div>
+        <div style="display:flex;gap:8px">
+          <button class="btn" id="exp-json"><i class="ti ti-json"></i>&nbsp; JSON</button>
+          <button class="btn" id="exp-csv"><i class="ti ti-table"></i>&nbsp; CSV</button>
+        </div>
+        <div style="height:8px"></div>
+        <button class="btn btn.purple" id="exp-yolo"><i class="ti ti-database-export"></i>&nbsp; Export YOLO</button>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+      <div class="toolbar" role="toolbar">
+        <button class="tool primary" id="tb-upload"><i class="ti ti-upload"></i>&nbsp; Upload Image</button>
+        <button class="tool" id="tb-capture"><i class="ti ti-camera"></i>&nbsp; Capture</button>
+        <button class="tool" id="tb-synth"><i class="ti ti-wand"></i>&nbsp; Synthetic</button>
+        <div class="separator" role="separator"></div>
+        <button class="tool" id="tb-calib"><i class="ti ti-ruler-2"></i>&nbsp; Calibrate</button>
+        <div class="separator" role="separator"></div>
+        <button class="tool" id="tb-quick"><i class="ti ti-bolt"></i>&nbsp; Quick</button>
+        <button class="tool" id="tb-deep"><i class="ti ti-search"></i>&nbsp; Deep</button>
+        <button class="tool primary" id="tb-compare"><i class="ti ti-chart-bar"></i>&nbsp; Run both & compare</button>
+        <div class="separator" role="separator"></div>
+        <button class="tool ml" id="tb-ml"><i class="ti ti-robot"></i>&nbsp; ML Detection</button>
+        <button class="tool" id="tb-load-yolo"><i class="ti ti-folder-open"></i>&nbsp; Load YOLO</button>
+        <div style="flex:1"></div>
+        <div class="muted-small">Python 3.x · OpenCV 4.x</div>
+      </div>
+
+      <div class="workspace" role="main">
+        <section class="viewer" aria-label="Image viewer">
+          <div class="tabbar">
+            <div class="tab active" data-tab="original">Original image</div>
+            <div class="tab" data-tab="mask">Segmentation mask</div>
+            <div class="tab" data-tab="annot">Detection results</div>
+            <div class="tab" data-tab="table">Data table</div>
+            <div class="tab" data-tab="stats">Statistics</div>
+          </div>
+
+          <div class="canvas" id="canvas">
+            <div class="specimen" aria-hidden="true"><i class="ti ti-droplet" style="font-size:44px;color:rgba(255,255,255,0.04)"></i></div>
+
+            <div style="position:absolute;left:32px;top:32px;text-align:left;color:var(--muted)">
+              <div style="font-weight:700;font-size:15px;margin-bottom:6px">No image loaded</div>
+              <div class="muted-small">Drag & drop an image or use Upload / Capture</div>
+              <div style="height:12px"></div>
+              <div style="display:flex;gap:8px">
+                <input id="file-input" type="file" accept="image/*" style="display:none" />
+                <button class="btn btn.teal" id="select-image"><i class="ti ti-upload"></i>&nbsp; Select image</button>
+                <button class="btn ghost" id="synthetic-open"><i class="ti ti-wand"></i>&nbsp; Synthetic</button>
+              </div>
+            </div>
+
+            <div class="canvas-cta" aria-hidden="true">
+              <button class="btn ghost" id="box-zoom"><i class="ti ti-crop"></i>&nbsp; Box Zoom</button>
+            </div>
+
+            <div class="zoom-float" aria-hidden="true">
+              <button class="zf-btn" id="zoom-out">−</button>
+              <div class="zf-box" id="zoom-value">100%</div>
+              <button class="zf-btn" id="zoom-in">+</button>
+              <button class="zf-btn" id="zoom-reset">⤾</button>
+            </div>
+          </div>
+        </section>
+
+        <aside class="panel" aria-label="Results & metrics">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div style="font-weight:800">Detection summary</div>
+            <div class="muted-small">Last run: —</div>
+          </div>
+
+          <div style="height:12px"></div>
+          <div class="stat-grid">
+            <div class="stat-card"><div class="stat-num" id="stat-count">—</div><div class="stat-label">Particles</div></div>
+            <div class="stat-card"><div class="stat-num" id="stat-time">—</div><div class="stat-label">Time (s)</div></div>
+            <div class="stat-card"><div class="stat-num" id="stat-prec">—</div><div class="stat-label">Precision</div></div>
+            <div class="stat-card"><div class="stat-num" id="stat-f1">—</div><div class="stat-label">F1</div></div>
+          </div>
+
+          <div style="margin-top:10px;font-weight:700">Shape distribution</div>
+          <div class="shape-row"><div class="shape-name">Fragment</div><div class="shape-track"><div class="shape-fill" style="width:60%;background:var(--accent-blue)"></div></div><div class="muted-small" style="width:36px;text-align:right">31</div></div>
+          <div class="shape-row"><div class="shape-name">Fiber</div><div class="shape-track"><div class="shape-fill" style="width:22%;background:var(--accent-teal)"></div></div><div class="muted-small" style="width:36px;text-align:right">11</div></div>
+          <div class="shape-row"><div class="shape-name">Microbead</div><div class="shape-track"><div class="shape-fill" style="width:10%;background:var(--accent-amber)"></div></div><div class="muted-small" style="width:36px;text-align:right">5</div></div>
+
+          <div class="results-box" id="results">Run an analysis to show results and export options.</div>
+        </aside>
+      </div>
+    </main>
+
+    <!-- Footer / status -->
+    <footer class="status" role="status">
+      <div class="dot" aria-hidden="true"></div>
+      <div class="muted-small">Ready</div>
+      <div style="flex:1"></div>
+      <div class="muted-small">Calibration: none · Units = px</div>
+      <div style="width:1px;height:20px;background:rgba(255,255,255,0.02);margin:0 8px"></div>
+      <div class="muted-small">Model: not loaded</div>
+    </footer>
+  </div>
+
+<script>
+  // Tab switching
+  document.querySelectorAll('.tab').forEach(tab=>{
+    tab.addEventListener('click', ()=>{
+      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+      tab.classList.add('active');
+    });
+  });
+
+  // File select / preview
+  const fileInput = document.getElementById('file-input');
+  const selectBtn = document.getElementById('select-image');
+  const imgCanvas = document.getElementById('canvas');
+  selectBtn.addEventListener('click', ()=> fileInput.click());
+  fileInput.addEventListener('change', e=>{
+    const f = e.target.files[0]; if(!f) return;
+    const url = URL.createObjectURL(f);
+    previewImage(url);
+  });
+
+  function previewImage(url){
+    imgCanvas.querySelectorAll('img.preview').forEach(n=>n.remove());
+    const img = new Image();
+    img.className = 'preview';
+    img.src = url;
+    img.style.maxWidth = '94%';
+    img.style.maxHeight = '84%';
+    img.style.borderRadius = '8px';
+    img.onload = ()=> URL.revokeObjectURL(url);
+    imgCanvas.appendChild(img);
+  }
+
+  // Drag & drop
+  const canvasArea = document.getElementById('canvas');
+  canvasArea.addEventListener('dragover', e=>{ e.preventDefault(); canvasArea.style.outline = '2px dashed rgba(58,123,213,0.45)'; });
+  canvasArea.addEventListener('dragleave', ()=>{ canvasArea.style.outline = 'none'; });
+  canvasArea.addEventListener('drop', e=>{
+    e.preventDefault(); canvasArea.style.outline = 'none';
+    const f = e.dataTransfer.files && e.dataTransfer.files[0];
+    if(f && f.type.startsWith('image/')) previewImage(URL.createObjectURL(f));
+  });
+
+  // Zoom demo
+  let zoom = 100;
+  const zoomValueEls = () => document.querySelectorAll('#zoom-value');
+  const setZoom = v => {
+    zoom = Math.max(10, Math.min(400, v));
+    zoomValueEls().forEach(el=>el.textContent = zoom + '%');
+    // In a real app you'd scale the canvas/image here.
+  };
+  document.getElementById('zoom-in').addEventListener('click', ()=> setZoom(zoom+10));
+  document.getElementById('zoom-out').addEventListener('click', ()=> setZoom(zoom-10));
+  document.getElementById('zoom-reset').addEventListener('click', ()=> setZoom(100));
+  document.getElementById('box-zoom').addEventListener('click', ()=> alert('Box zoom (demo)'));
+
+  // Wire core buttons to demo actions (replace with real handlers)
+  [
+    'upload-main','capture-main','synth-main','calib-main','gen-synth','save-synth',
+    'ml-load','ml-detect','ml-bench','exp-json','exp-csv','exp-yolo',
+    'tb-upload','tb-capture','tb-synth','tb-calib','tb-quick','tb-deep','tb-compare','tb-ml','tb-load-yolo'
+  ].forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.addEventListener('click', ()=> alert(id + ' clicked (demo)'));
+  });
+
+  // ML load demo updates status
+  const mlLoadBtn = document.getElementById('ml-load');
+  const mlStatus = document.getElementById('ml-status');
+  if(mlLoadBtn) mlLoadBtn.addEventListener('click', ()=>{
+    mlStatus.textContent = 'Model: yolov8-microplastics.pt (demo)';
+    document.querySelectorAll('.status .muted-small, .muted-small').forEach(el=>{
+      // no-op; just a placeholder for future UI updates
+    });
+    alert('YOLO model loaded (demo)');
+  });
+</script>
+</body>
+</html>
