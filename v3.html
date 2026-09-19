@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Microplastic Analyzer Pro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.47.0/iconfont/tabler-icons.min.css"></script>
+<style>
+  :root{
+    --paper:#F6F3EC;
+    --panel:#FFFFFF;
+    --panel-2:#FBF9F3;
+    --ink:#1B2B28;
+    --ink-soft:#41534E;
+    --muted:#8A8F84;
+    --line:#E2DCCB;
+    --line-strong:#CFC8B2;
+    --teal:#0E7C66;
+    --teal-deep:#0B5F4F;
+    --teal-tint:#E4F1EB;
+    --amber:#C2752C;
+    --amber-tint:#FBEEDE;
+    --rust:#B4502C;
+    --rust-tint:#F8E8DF;
+    --purple:#6C4FB8;
+    --purple-tint:#EDE7FA;
+    --slide-a:#3E7CB1;
+    --slide-b:#1D9E75;
+    --slide-c:#D85A30;
+    --slide-d:#9A9382;
+    --radius:10px;
+    --radius-lg:16px;
+    --shadow-card: 0 1px 2px rgba(27,43,40,0.04), 0 8px 24px -12px rgba(27,43,40,0.10);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Inter',sans-serif;
+    background:
+      radial-gradient(circle at 12% 8%, rgba(14,124,102,0.05), transparent 40%),
+      var(--paper);
+    color:var(--ink);
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:28px 16px;
+  }
+  .display{font-family:'Space Grotesk',sans-serif}
+  .mono{font-family:'IBM Plex Mono',monospace}
+  button{font-family:inherit}
+
+  /* ---------- App shell ---------- */
+  .app{
+    width:100%;
+    max-width:1360px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius-lg);
+    overflow:hidden;
+    box-shadow:var(--shadow-card);
+    display:flex;
+    flex-direction:column;
+    height:800px;
+  }
+
+  /* Menu bar */
+  .menubar{
+    height:28px;background:var(--panel-2);border-bottom:1px solid var(--line);
+    display:flex;align-items:center;padding:0 16px;gap:18px;flex-shrink:0;
+  }
+  .menubar span{font-size:11.5px;color:var(--ink-soft);cursor:default;font-weight:500}
+  .menubar span:hover{color:var(--teal-deep)}
+
+  /* Titlebar */
+  .titlebar{
+    height:50px;
+    background:var(--teal-deep);
+    background-image: linear-gradient(135deg, var(--teal-deep), #0E6F5C 60%, var(--teal));
+    color:#fff;
+    display:flex;
+    align-items:center;
+    padding:0 18px;
+    gap:12px;
+    flex-shrink:0;
+  }
+  .brand-mark{
+    width:26px;height:26px;border-radius:7px;
+    background:rgba(255,255,255,0.14);
+    display:flex;align-items:center;justify-content:center;
+    border:1px solid rgba(255,255,255,0.22);
+  }
+  .brand-mark i{font-size:15px;color:#EAF6F1}
+  .titlebar-title{font-family:'Space Grotesk';font-weight:600;font-size:14.5px;letter-spacing:.01em}
+  .titlebar-sub{font-size:11.5px;color:rgba(255,255,255,0.68);margin-left:2px}
+  .title-spacer{flex:1}
+  .ticks{display:flex;align-items:flex-end;gap:3px;height:14px;opacity:.55;margin-right:10px}
+  .ticks span{width:1px;background:#fff;display:block}
+  .ticks span:nth-child(odd){height:7px}
+  .ticks span:nth-child(even){height:11px}
+  .titlebar-icon{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.78);cursor:pointer}
+  .titlebar-icon:hover{background:rgba(255,255,255,0.12)}
+
+  /* Toolbar */
+  .toolbar{
+    min-height:56px;
+    background:var(--panel-2);
+    border-bottom:1px solid var(--line);
+    display:flex;align-items:center;flex-wrap:wrap;
+    padding:8px 16px;gap:8px 6px;
+    row-gap:6px;
+    flex-shrink:0;
+  }
+  .toolbar-group{display:flex;align-items:center;flex-wrap:wrap;gap:6px;min-width:0}
+  .tool-btn{
+    display:flex;align-items:center;gap:6px;
+    padding:8px 13px;border-radius:var(--radius);
+    border:1px solid var(--line-strong);background:var(--panel);
+    font-size:12.5px;font-weight:600;color:var(--ink-soft);
+    cursor:pointer;white-space:nowrap;
+    transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease, opacity .15s ease;
+  }
+  .tool-btn i{font-size:16px}
+  .tool-btn:hover{border-color:var(--teal);color:var(--teal-deep);transform:translateY(-1px)}
+  .tool-btn:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+  .tool-btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
+  .tool-btn.primary:hover{background:var(--teal-deep);color:#fff}
+  .tool-btn.amber{background:var(--amber-tint);border-color:#E7C698;color:#7A4A16}
+  .tool-btn.purple{background:var(--purple-tint);border-color:#C9BAEF;color:#4B3684}
+  .tool-divider{width:1px;height:26px;background:var(--line-strong);margin:0 4px;flex-shrink:0}
+
+  /* Conditional toolbar controls (only relevant once an image is loaded) */
+  .app.no-image .toolbar .requires-image{display:none}
+
+  @media (max-width:1180px){
+    .toolbar{padding:8px 12px;gap:6px 5px}
+    .tool-btn{padding:7px 10px;font-size:12px}
+    .tool-divider{margin:0 2px}
+  }
+  @media (max-width:860px){
+    .tool-btn span.btn-label{display:none}
+    .tool-btn{padding:8px;gap:0}
+    .tool-btn i{font-size:17px}
+  }
+
+  /* Body grid */
+  .body{flex:1;display:grid;grid-template-columns:1fr 320px;overflow:hidden}
+  .workspace{display:flex;flex-direction:column;overflow:hidden;border-right:1px solid var(--line);background:var(--paper)}
+
+  .tabbar{
+    height:40px;display:flex;align-items:center;
+    padding:0 10px;gap:2px;background:var(--panel-2);
+    border-bottom:1px solid var(--line);flex-shrink:0;
+  }
+  .tabchip{
+    padding:8px 14px;font-size:12px;font-weight:600;
+    border-radius:8px 8px 0 0;color:var(--muted);cursor:pointer;
+    border:1px solid transparent;border-bottom:none;
+    transition:color .12s ease;
+  }
+  .tabchip.active{background:var(--paper);color:var(--teal-deep);border-color:var(--line)}
+  .tabchip:hover:not(.active){color:var(--ink-soft)}
+
+  .canvas{
+    flex:1;display:flex;align-items:center;justify-content:center;
+    position:relative;
+    background-image:
+      linear-gradient(rgba(27,43,40,0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(27,43,40,0.035) 1px, transparent 1px);
+    background-size:22px 22px;
+  }
+  .specimen{
+    width:220px;height:220px;border-radius:50%;
+    background: radial-gradient(circle at 38% 32%, #fff, #F2EFE6 68%, #E7E2D2 100%);
+    border:1px solid var(--line-strong);
+    display:flex;align-items:center;justify-content:center;
+    position:relative;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.6), 0 10px 30px -12px rgba(27,43,40,0.25);
+  }
+  .specimen::before, .specimen::after{
+    content:'';position:absolute;background:rgba(27,43,40,0.16);
+  }
+  .specimen::before{width:1px;height:100%;left:50%}
+  .specimen::after{height:1px;width:100%;top:50%}
+  .specimen-ring{position:absolute;inset:14px;border-radius:50%;border:1px dashed rgba(27,43,40,0.18)}
+  .empty-copy{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;z-index:1}
+  .empty-copy i{font-size:26px;color:var(--teal);opacity:.75}
+  .empty-copy .t1{font-size:13px;font-weight:600;color:var(--ink)}
+  .empty-copy .t2{font-size:11px;color:var(--muted)}
+  .empty-cta{
+    margin-top:18px;padding:9px 18px;border-radius:999px;
+    border:1px solid var(--teal);background:var(--teal);color:#fff;
+    font-size:12px;font-weight:600;cursor:pointer;letter-spacing:.01em;
+    box-shadow:0 6px 16px -6px rgba(14,124,102,0.55);
+  }
+  .empty-cta:hover{background:var(--teal-deep)}
+
+  .loaded-copy{display:flex;flex-direction:column;align-items:center;gap:16px;z-index:1}
+  .specimen.loaded{
+    width:340px;height:340px;
+    background: radial-gradient(circle at 38% 32%, #fff, #EAF3EF 55%, #CFE7DC 100%);
+    border-color: var(--teal);
+  }
+  .specimen.loaded i{color:var(--teal);opacity:.85;font-size:30px}
+  .remove-image-btn{
+    display:flex;align-items:center;gap:6px;
+    padding:7px 14px;border-radius:999px;
+    border:1px solid var(--line-strong);background:var(--panel);
+    font-size:11.5px;font-weight:600;color:var(--ink-soft);cursor:pointer;
+  }
+  .remove-image-btn:hover{border-color:var(--rust);color:var(--rust)}
+  .remove-image-btn:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+
+  .zoom-float{
+    position:absolute;bottom:14px;right:14px;
+    display:flex;align-items:center;gap:2px;
+    background:var(--panel);border:1px solid var(--line-strong);
+    border-radius:999px;padding:4px;box-shadow:var(--shadow-card);
+  }
+  .zoom-float button{
+    width:26px;height:26px;border:none;background:transparent;
+    color:var(--ink-soft);font-size:13px;cursor:pointer;border-radius:999px;
+  }
+  .zoom-float button:hover{background:var(--teal-tint);color:var(--teal-deep)}
+  .zoom-float span{font-size:10.5px;color:var(--muted);padding:0 7px;font-family:'IBM Plex Mono'}
+  .zoom-float .box-zoom{width:auto;padding:0 8px;font-size:10.5px;font-weight:600;gap:4px;display:flex;align-items:center}
+
+  .statusline{
+    height:30px;background:var(--panel-2);border-top:1px solid var(--line);
+    display:flex;align-items:center;padding:0 14px;gap:10px;
+    font-size:10.5px;color:var(--muted);flex-shrink:0;font-family:'IBM Plex Mono';
+  }
+  .status-dot{width:6px;height:6px;border-radius:50%;background:var(--teal);box-shadow:0 0 0 3px var(--teal-tint)}
+  .statusline .sep{color:var(--line-strong)}
+
+  /* Side panel */
+  .sidepanel{display:flex;flex-direction:column;overflow-y:auto;background:var(--panel-2)}
+  .pcard{margin:12px 12px 0;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:12px}
+  .pcard:last-child{margin-bottom:12px}
+  .pcard-title{
+    font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
+    color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;
+  }
+  .pcard-title i.lead{font-size:13px;color:var(--teal)}
+  .pcard-title .chev{margin-left:auto;font-size:13px;color:var(--muted);transition:transform .15s ease}
+  .pcard.collapsed .chev{transform:rotate(-90deg)}
+  .pcard.collapsed .pcard-body{display:none}
+
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .stat-box{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:9px 10px}
+  .stat-num{font-family:'Space Grotesk';font-size:19px;font-weight:700;color:var(--ink)}
+  .stat-lbl{font-size:9.5px;color:var(--muted);margin-top:1px;font-weight:500}
+
+  .calrow{
+    display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;
+    background:var(--amber-tint);border:1px solid #E7C698;font-size:11px;
+    color:#7A4A16;font-weight:600;
+  }
+  .calrow i{font-size:14px}
+
+  .action-list{display:flex;flex-direction:column;gap:6px}
+  .action-btn{
+    display:flex;align-items:center;gap:8px;padding:8px 9px;border-radius:8px;
+    border:1px solid var(--line);background:var(--panel-2);font-size:11.5px;
+    font-weight:500;color:var(--ink-soft);cursor:pointer;transition:border-color .12s ease;
+  }
+  .action-btn:hover{border-color:var(--teal);color:var(--teal-deep)}
+  .action-btn i{font-size:15px;color:var(--teal)}
+  .action-btn.disabled{opacity:.5;cursor:not-allowed}
+  .action-btn.full{background:var(--teal-tint);border-color:var(--teal);color:var(--teal-deep);font-weight:700;justify-content:center}
+
+  .shapebar{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+  .shapebar:last-child{margin-bottom:0}
+  .shapebar .nm{font-size:10.5px;color:var(--ink-soft);width:78px;flex-shrink:0;font-weight:500}
+  .shapebar .trk{flex:1;height:6px;background:var(--panel-2);border-radius:3px;overflow:hidden;border:1px solid var(--line)}
+  .shapebar .fl{height:100%;border-radius:3px}
+  .shapebar .ct{font-size:10.5px;color:var(--ink);width:18px;text-align:right;font-family:'IBM Plex Mono';font-weight:600}
+
+  /* Param grids (Synthetic / Quick / Deep) */
+  .param-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .param-item{display:flex;flex-direction:column;gap:3px}
+  .param-item.full{grid-column:1/-1}
+  .param-label{font-size:10px;color:var(--muted);font-weight:500}
+  .param-input,.param-select{
+    padding:6px 8px;border-radius:7px;border:1px solid var(--line-strong);
+    background:var(--panel-2);color:var(--ink);font-size:11px;width:100%;
+  }
+  .param-check{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink-soft);font-weight:500;padding-top:2px}
+  .param-check input{width:13px;height:13px;accent-color:var(--teal)}
+  .model-status{font-size:10.5px;color:var(--muted);font-style:italic;margin-top:6px;display:flex;align-items:center;gap:5px}
+  .model-status .dot-off{width:6px;height:6px;border-radius:50%;background:var(--muted)}
+
+  .results-box{
+    min-height:70px;border:1px solid var(--line);background:var(--panel-2);border-radius:8px;
+    padding:9px 10px;font-size:11px;color:var(--muted);font-style:italic;line-height:1.5;
+  }
+  .export-row{display:flex;gap:6px;margin-top:8px}
+  .export-btn{
+    flex:1;padding:7px;border:1px solid var(--line-strong);background:var(--panel-2);border-radius:8px;
+    font-size:10.5px;font-weight:600;text-align:center;color:var(--ink-soft);cursor:pointer;
+  }
+  .export-btn:hover{border-color:var(--teal);color:var(--teal-deep)}
+
+  @media (max-width:960px){
+    .body{grid-template-columns:1fr}
+    .sidepanel{display:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="app no-image">
+  <!-- Menu bar -->
+  <div class="menubar">
+    <span>File</span><span>Tools</span><span>Machine Learning</span><span>Help</span>
+  </div>
+
+  <!-- Titlebar -->
+  <div class="titlebar">
+    <div class="brand-mark"><i class="ti ti-microscope" aria-hidden="true"></i></div>
+    <span class="titlebar-title">Microplastic Analyzer Pro</span>
+    <span class="titlebar-sub">— Unsaved</span>
+    <div class="title-spacer"></div>
+    <div class="ticks" aria-hidden="true">
+      <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <div class="titlebar-icon"><i class="ti ti-help" aria-hidden="true"></i></div>
+    <div class="titlebar-icon"><i class="ti ti-settings" aria-hidden="true"></i></div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="toolbar-group">
+      <button class="tool-btn primary" id="btn-upload" title="Upload Image" aria-label="Upload Image"><i class="ti ti-upload" aria-hidden="true"></i><span class="btn-label">Upload Image</span></button>
+      <button class="tool-btn" id="btn-capture" title="Capture from Camera" aria-label="Capture from Camera"><i class="ti ti-camera" aria-hidden="true"></i><span class="btn-label">Capture from Camera</span></button>
+      <button class="tool-btn amber" id="btn-generate" title="Generate Synthetic Image" aria-label="Generate Synthetic Image"><i class="ti ti-wand" aria-hidden="true"></i><span class="btn-label">Generate Synthetic Image</span></button>
+    </div>
+
+    <div class="tool-divider requires-image"></div>
+    <div class="toolbar-group requires-image">
+      <button class="tool-btn purple" title="Calibrate Camera" aria-label="Calibrate Camera"><i class="ti ti-ruler-2" aria-hidden="true"></i><span class="btn-label">Calibrate Camera</span></button>
+    </div>
+
+    <div class="tool-divider requires-image"></div>
+    <div class="toolbar-group requires-image">
+      <button class="tool-btn" title="Quick Analysis" aria-label="Quick Analysis"><i class="ti ti-bolt" aria-hidden="true"></i><span class="btn-label">Quick Analysis</span></button>
+      <button class="tool-btn" title="Deep Analysis" aria-label="Deep Analysis"><i class="ti ti-search" aria-hidden="true"></i><span class="btn-label">Deep Analysis</span></button>
+      <button class="tool-btn primary" title="Run Both &amp; Compare" aria-label="Run Both and Compare"><i class="ti ti-chart-bar" aria-hidden="true"></i><span class="btn-label">Run Both &amp; Compare</span></button>
+      <button class="tool-btn" title="Benchmark" aria-label="Benchmark"><i class="ti ti-report" aria-hidden="true"></i><span class="btn-label">Benchmark</span></button>
+    </div>
+
+    <div class="tool-divider requires-image"></div>
+    <div class="toolbar-group requires-image">
+      <button class="tool-btn" title="ML Detection" aria-label="ML Detection"><i class="ti ti-robot" aria-hidden="true"></i><span class="btn-label">ML Detection</span></button>
+      <button class="tool-btn" title="Export YOLO Dataset" aria-label="Export YOLO Dataset"><i class="ti ti-database-export" aria-hidden="true"></i><span class="btn-label">Export YOLO Dataset</span></button>
+    </div>
+
+    <div class="tool-divider requires-image"></div>
+    <div class="toolbar-group requires-image">
+      <button class="tool-btn" title="Export Results" aria-label="Export Results"><i class="ti ti-download" aria-hidden="true"></i><span class="btn-label">Export Results</span></button>
+    </div>
+  </div>
+
+  <!-- Body -->
+  <div class="body">
+    <div class="workspace">
+      <div class="tabbar">
+        <div class="tabchip active">Original Image</div>
+        <div class="tabchip">Segmentation Mask</div>
+        <div class="tabchip">Detection Results</div>
+        <div class="tabchip">Data Table</div>
+        <div class="tabchip">Statistics</div>
+      </div>
+
+      <div class="canvas">
+        <div class="empty-copy" id="empty-copy">
+          <div class="specimen">
+            <div class="specimen-ring"></div>
+            <i class="ti ti-droplet" aria-hidden="true"></i>
+          </div>
+          <div style="margin-top:18px" class="t1">No image loaded</div>
+          <div class="t2">Drag &amp; drop an image here, or select an image to start analysis</div>
+          <button class="empty-cta" id="btn-select-image"><i class="ti ti-upload" style="font-size:12px;margin-right:6px" aria-hidden="true"></i>Select Image</button>
+        </div>
+
+        <div class="loaded-copy" id="loaded-copy" hidden>
+          <div class="specimen loaded">
+            <div class="specimen-ring"></div>
+            <i class="ti ti-droplet" aria-hidden="true"></i>
+          </div>
+          <button class="remove-image-btn" id="btn-remove-image" title="Remove image" aria-label="Remove image"><i class="ti ti-x" aria-hidden="true"></i> Remove image</button>
+        </div>
+
+        <div class="zoom-float" id="zoom-float" hidden>
+          <button title="Zoom Out" aria-label="Zoom Out"><i class="ti ti-minus" aria-hidden="true"></i></button>
+          <span>100%</span>
+          <button title="Zoom In" aria-label="Zoom In"><i class="ti ti-plus" aria-hidden="true"></i></button>
+          <button title="Reset Zoom" aria-label="Reset Zoom"><i class="ti ti-zoom-scan" aria-hidden="true"></i></button>
+          <button class="box-zoom" title="Box Zoom" aria-label="Box Zoom"><i class="ti ti-crop" aria-hidden="true"></i> Box Zoom</button>
+        </div>
+
+        <input type="file" id="file-input" accept="image/*" hidden>
+      </div>
+
+      <div class="statusline">
+        <span style="display:flex;align-items:center;gap:6px"><span class="status-dot" id="status-dot"></span><span id="status-text">Ready</span></span>
+        <span class="sep">·</span>
+        <span>Not calibrated — sizes in pixels</span>
+        <span class="sep">·</span>
+        <span>Python 3.x · OpenCV 4.x</span>
+      </div>
+    </div>
+
+    <!-- Side panel -->
+    <div class="sidepanel">
+
+      <div class="pcard">
+        <div class="pcard-title"><i class="ti ti-chart-dots lead" aria-hidden="true"></i>Detection Overview</div>
+        <div class="pcard-body">
+          <div class="stat-grid">
+            <div class="stat-box"><div class="stat-num">—</div><div class="stat-lbl">Particles</div></div>
+            <div class="stat-box"><div class="stat-num">—</div><div class="stat-lbl">Time (s)</div></div>
+            <div class="stat-box"><div class="stat-num">—</div><div class="stat-lbl">Precision</div></div>
+            <div class="stat-box"><div class="stat-num">—</div><div class="stat-lbl">F1 Score</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pcard">
+        <div class="pcard-title"><i class="ti ti-ruler-2 lead" aria-hidden="true"></i>Calibration</div>
+        <div class="pcard-body">
+          <div class="calrow"><i class="ti ti-alert-triangle" aria-hidden="true"></i> Not calibrated — displayed sizes in pixels</div>
+        </div>
+      </div>
+
+      <div class="pcard collapsed">
+        <div class="pcard-title" onclick="this.parentElement.classList.toggle('collapsed')"><i class="ti ti-sparkles lead" aria-hidden="true"></i>Synthetic Image Parameters<i class="ti ti-chevron-down chev" aria-hidden="true"></i></div>
+        <div class="pcard-body">
+          <div class="param-grid">
+            <div class="param-item"><span class="param-label">Number of particles</span><input class="param-input" value="50"></div>
+            <div class="param-item"><span class="param-label">Shape type</span><select class="param-select"><option>Mixed</option><option>Fragment</option><option>Fiber</option><option>Sphere</option></select></div>
+            <div class="param-item"><span class="param-label">Color type</span><select class="param-select"><option>Fluorescent</option><option>Brightfield</option></select></div>
+            <div class="param-item param-check"><label><input type="checkbox" checked> Enable blur</label></div>
+            <div class="param-item"><span class="param-label">Background brightness</span><input class="param-input" value="0"></div>
+            <div class="param-item"><span class="param-label">Object brightness</span><input class="param-input" value="255"></div>
+            <div class="param-item"><span class="param-label">Width</span><input class="param-input" value="1280"></div>
+            <div class="param-item"><span class="param-label">Height</span><input class="param-input" value="1280"></div>
+            <div class="param-item full"><button class="action-btn full" style="margin-top:2px"><i class="ti ti-wand" aria-hidden="true"></i> Generate Synthetic Image</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pcard collapsed requires-image" hidden>
+        <div class="pcard-title" onclick="this.parentElement.classList.toggle('collapsed')"><i class="ti ti-bolt lead" aria-hidden="true"></i>Quick Analysis Parameters<i class="ti ti-chevron-down chev" aria-hidden="true"></i></div>
+        <div class="pcard-body">
+          <div class="param-grid">
+            <div class="param-item full"><span class="param-label">Preprocessing</span><select class="param-select"><option>basic</option></select></div>
+            <div class="param-item"><span class="param-label">Blur</span><input class="param-input" value="5"></div>
+            <div class="param-item"><span class="param-label">Distance threshold</span><input class="param-input" value="0.5"></div>
+            <div class="param-item"><span class="param-label">Min area</span><input class="param-input" value="20"></div>
+            <div class="param-item"><span class="param-label">Max area</span><input class="param-input" value="10000"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pcard collapsed requires-image" hidden>
+        <div class="pcard-title" onclick="this.parentElement.classList.toggle('collapsed')"><i class="ti ti-search lead" aria-hidden="true"></i>Deep Analysis Parameters<i class="ti ti-chevron-down chev" aria-hidden="true"></i></div>
+        <div class="pcard-body">
+          <div class="param-grid">
+            <div class="param-item full"><span class="param-label">Preprocessing</span><select class="param-select"><option>advanced</option></select></div>
+            <div class="param-item"><span class="param-label">Morphology kernel</span><input class="param-input" value="5"></div>
+            <div class="param-item"><span class="param-label">Blur</span><input class="param-input" value="3"></div>
+            <div class="param-item"><span class="param-label">Distance threshold</span><input class="param-input" value="0.4"></div>
+            <div class="param-item"><span class="param-label">Min area</span><input class="param-input" value="20"></div>
+            <div class="param-item"><span class="param-label">Max area</span><input class="param-input" value="10000"></div>
+            <div class="param-item"><span class="param-label">Min brightness</span><input class="param-input" value="0"></div>
+            <div class="param-item"><span class="param-label">Min sharpness</span><input class="param-input" value="0.0"></div>
+            <div class="param-item full"><span class="param-label">Adaptive C constant</span><input class="param-input" value="2"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pcard requires-image" hidden>
+        <div class="pcard-title"><i class="ti ti-player-play lead" aria-hidden="true"></i>Run analysis</div>
+        <div class="pcard-body">
+          <div class="action-list">
+            <div class="action-btn"><i class="ti ti-bolt" aria-hidden="true"></i> Quick Analysis</div>
+            <div class="action-btn"><i class="ti ti-search" aria-hidden="true"></i> Deep Analysis</div>
+            <div class="action-btn full"><i class="ti ti-chart-bar" aria-hidden="true"></i> Run Both &amp; Compare</div>
+            <div class="action-btn"><i class="ti ti-report" aria-hidden="true"></i> Run Benchmark</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pcard requires-image" hidden>
+        <div class="pcard-title"><i class="ti ti-robot lead" aria-hidden="true"></i>Machine Learning (YOLO)</div>
+        <div class="pcard-body">
+          <div class="action-list">
+            <div class="action-btn"><i class="ti ti-folder-open" aria-hidden="true"></i> Load YOLO model</div>
+            <div class="action-btn disabled"><i class="ti ti-scan" aria-hidden="true"></i> Run ML Detection</div>
+            <div class="action-btn disabled"><i class="ti ti-report-analytics" aria-hidden="true"></i> Run ML Benchmark</div>
+          </div>
+          <div class="model-status"><span class="dot-off"></span> Model not loaded</div>
+        </div>
+      </div>
+
+      <div class="pcard requires-image" hidden>
+        <div class="pcard-title"><i class="ti ti-shape lead" aria-hidden="true"></i>Shape distribution</div>
+        <div class="pcard-body">
+          <div class="shapebar"><span class="nm">Fragment</span><div class="trk"><div class="fl" style="width:58%;background:var(--slide-a)"></div></div><span class="ct">29</span></div>
+          <div class="shapebar"><span class="nm">Fiber</span><div class="trk"><div class="fl" style="width:24%;background:var(--slide-b)"></div></div><span class="ct">12</span></div>
+          <div class="shapebar"><span class="nm">Microbead</span><div class="trk"><div class="fl" style="width:12%;background:var(--slide-c)"></div></div><span class="ct">6</span></div>
+          <div class="shapebar"><span class="nm">Unknown</span><div class="trk"><div class="fl" style="width:6%;background:var(--slide-d)"></div></div><span class="ct">3</span></div>
+          <p style="font-size:10px;color:var(--muted);margin-top:6px;font-style:italic">Sample data — run analysis to update</p>
+        </div>
+      </div>
+
+      <div class="pcard requires-image" hidden>
+        <div class="pcard-title"><i class="ti ti-target-arrow lead" aria-hidden="true"></i>Ground truth</div>
+        <div class="pcard-body">
+          <div class="stat-grid">
+            <div class="stat-box"><div class="stat-num">—</div><div class="stat-lbl">GT particles</div></div>
+            <div class="stat-box"><div class="stat-num">—</div><div class="stat-lbl">Precision</div></div>
+            <div class="stat-box"><div class="stat-num">—</div><div class="stat-lbl">Recall</div></div>
+            <div class="stat-box"><div class="stat-num">—</div><div class="stat-lbl">F1 score</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pcard requires-image" hidden>
+        <div class="pcard-title"><i class="ti ti-adjustments lead" aria-hidden="true"></i>Quick settings</div>
+        <div class="pcard-body">
+          <div class="action-list">
+            <div class="action-btn"><i class="ti ti-bulb" aria-hidden="true"></i> Fluorescent microscopy</div>
+            <div class="action-btn"><i class="ti ti-sun" aria-hidden="true"></i> Brightfield microscopy</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pcard requires-image" hidden>
+        <div class="pcard-title"><i class="ti ti-clipboard-text lead" aria-hidden="true"></i>Summary results</div>
+        <div class="pcard-body">
+          <div class="results-box">Run an analysis to see results here...</div>
+          <div class="export-row">
+            <div class="export-btn"><i class="ti ti-json" aria-hidden="true"></i> Export JSON</div>
+            <div class="export-btn"><i class="ti ti-table" aria-hidden="true"></i> Export CSV</div>
+          </div>
+          <div class="export-row">
+            <div class="export-btn"><i class="ti ti-database-export" aria-hidden="true"></i> Export YOLO Dataset</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  // ---------- Tab switching ----------
+  document.querySelectorAll('.tabchip').forEach(tab=>{
+    tab.addEventListener('click', ()=>{
+      document.querySelectorAll('.tabchip').forEach(t=>t.classList.remove('active'));
+      tab.classList.add('active');
+    });
+  });
+
+  // ---------- Application state ----------
+  let imageLoaded = false;
+
+  const appEl        = document.querySelector('.app');
+  const emptyCopyEl  = document.getElementById('empty-copy');
+  const loadedCopyEl = document.getElementById('loaded-copy');
+  const zoomFloatEl  = document.getElementById('zoom-float');
+  const fileInputEl  = document.getElementById('file-input');
+  const statusDotEl  = document.getElementById('status-dot');
+  const statusTextEl = document.getElementById('status-text');
+
+  // Central function: every part of the UI reads from `imageLoaded`.
+  function updateUIState(){
+    // Toolbar: .requires-image groups are shown/hidden via the .app.has-image /
+    // .app.no-image CSS rules below, driven by this class toggle.
+    appEl.classList.toggle('has-image', imageLoaded);
+    appEl.classList.toggle('no-image', !imageLoaded);
+
+    // Canvas
+    emptyCopyEl.hidden  = imageLoaded;
+    loadedCopyEl.hidden = !imageLoaded;
+    zoomFloatEl.hidden  = !imageLoaded;
+
+    // Side panel: every card flagged .requires-image
+    document.querySelectorAll('.sidepanel .requires-image').forEach(card=>{
+      card.hidden = !imageLoaded;
+    });
+
+    // Status line
+    statusDotEl.style.background = imageLoaded ? 'var(--teal)' : 'var(--muted)';
+    statusTextEl.textContent = imageLoaded ? 'Image loaded' : 'Ready';
+  }
+
+  function loadImage(){
+    imageLoaded = true;
+    updateUIState();
+  }
+
+  function removeImage(){
+    imageLoaded = false;
+    updateUIState();
+  }
+
+  // Upload Image -> opens the file picker; a chosen file marks the image loaded
+  document.getElementById('btn-upload').addEventListener('click', ()=> fileInputEl.click());
+  document.getElementById('btn-select-image').addEventListener('click', ()=> fileInputEl.click());
+  fileInputEl.addEventListener('change', ()=>{
+    if(fileInputEl.files && fileInputEl.files.length){
+      loadImage();
+    }
+  });
+
+  // Capture from Camera / Generate Synthetic Image both result in a loaded image
+  document.getElementById('btn-capture').addEventListener('click', loadImage);
+  document.getElementById('btn-generate').addEventListener('click', loadImage);
+
+  // Remove image -> back to empty state
+  document.getElementById('btn-remove-image').addEventListener('click', removeImage);
+
+  // Drag & drop onto the canvas also counts as loading an image
+  const canvasEl = document.querySelector('.canvas');
+  ['dragover'].forEach(evt=>{
+    canvasEl.addEventListener(evt, e=>{ e.preventDefault(); });
+  });
+  canvasEl.addEventListener('drop', e=>{
+    e.preventDefault();
+    if(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length){
+      loadImage();
+    }
+  });
+
+  // Initial render
+  updateUIState();
+</script>
+
+</body>
+</html>
