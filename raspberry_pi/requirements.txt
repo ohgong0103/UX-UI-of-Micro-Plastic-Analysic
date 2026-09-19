@@ -1,0 +1,3 @@
+Flask>=3.0,<4
+# Install Picamera2 from Raspberry Pi OS APT, not pip:
+# sudo apt install -y python3-picamera2

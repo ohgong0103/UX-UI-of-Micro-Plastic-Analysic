@@ -1,0 +1,15 @@
+[Unit]
+Description=IMX500 remote camera API
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/imx500-remote-camera/raspberry_pi
+ExecStart=/usr/bin/python3 /home/pi/imx500-remote-camera/raspberry_pi/main.py
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

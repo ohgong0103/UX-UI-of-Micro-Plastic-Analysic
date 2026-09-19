@@ -302,6 +302,23 @@
   }
   .export-btn:hover{border-color:var(--teal);color:var(--teal-deep)}
 
+  .camera-connect{display:grid;gap:8px}
+  .camera-connect .param-input{font-family:'IBM Plex Mono';font-size:10.5px}
+  .camera-row{display:flex;gap:6px}
+  .camera-row .action-btn{flex:1;justify-content:center}
+  .camera-state{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--muted)}
+  .camera-state .state-dot{width:7px;height:7px;border-radius:50%;background:var(--muted)}
+  .capture-meta{display:flex;justify-content:space-between;gap:8px;font-size:10.5px;color:var(--muted);font-family:'IBM Plex Mono'}
+  .capture-meta strong{color:var(--ink);font-weight:500}
+  .capture-preview{max-width:100%;max-height:100%;object-fit:contain;display:none;border:1px solid var(--line-strong);box-shadow:var(--shadow-card)}
+  .loaded-copy.has-preview .specimen{display:none}
+  .loaded-copy.has-preview .capture-preview{display:block}
+  .loaded-copy.has-preview{width:100%;height:100%;padding:20px}
+  .loaded-copy.has-preview .remove-image-btn{position:absolute;bottom:18px;left:18px}
+  .save-row{display:flex;gap:6px;margin-top:8px}
+  .save-row .param-input{flex:1}
+  .save-row .action-btn{flex:0 0 auto}
+
   @media (max-width:960px){
     .body{grid-template-columns:1fr}
     .sidepanel{display:none}
@@ -389,6 +406,7 @@
             <div class="specimen-ring"></div>
             <i class="ti ti-droplet" aria-hidden="true"></i>
           </div>
+          <img class="capture-preview" id="capture-preview" alt="Latest captured image">
           <button class="remove-image-btn" id="btn-remove-image" title="Remove image" aria-label="Remove image"><i class="ti ti-x" aria-hidden="true"></i> Remove image</button>
         </div>
 
@@ -414,6 +432,25 @@
 
     <!-- Side panel -->
     <div class="sidepanel">
+
+      <div class="pcard">
+        <div class="pcard-title"><i class="ti ti-device-camera lead" aria-hidden="true"></i>Remote camera</div>
+        <div class="pcard-body camera-connect">
+          <label class="param-label" for="camera-url">Camera API endpoint</label>
+          <input class="param-input" id="camera-url" value="http://192.168.1.100:8000" spellcheck="false">
+          <div class="camera-row">
+            <button class="action-btn full" id="btn-connect"><i class="ti ti-plug-connected" aria-hidden="true"></i> Connect</button>
+            <button class="action-btn" id="btn-disconnect"><i class="ti ti-plug-off" aria-hidden="true"></i> Disconnect</button>
+          </div>
+          <div class="camera-state"><span class="state-dot" id="camera-state-dot"></span><span id="camera-state-text">Disconnected</span></div>
+          <div class="capture-meta"><span>Model</span><strong id="camera-model">—</strong></div>
+          <div class="capture-meta"><span>Resolution</span><strong id="camera-resolution">—</strong></div>
+          <div class="save-row">
+            <input class="param-input" id="capture-filename" value="" placeholder="image_001.jpg" aria-label="Capture filename">
+            <button class="action-btn" id="btn-save" disabled title="Save original image"><i class="ti ti-download" aria-hidden="true"></i> Save</button>
+          </div>
+        </div>
+      </div>
 
       <div class="pcard">
         <div class="pcard-title"><i class="ti ti-chart-dots lead" aria-hidden="true"></i>Detection Overview</div>
@@ -567,6 +604,10 @@
 
   // ---------- Application state ----------
   let imageLoaded = false;
+  let imageUrl = '';
+  let cameraUrl = '';
+  let cameraConnected = false;
+  let statusTimer = null;
 
   const appEl        = document.querySelector('.app');
   const emptyCopyEl  = document.getElementById('empty-copy');
@@ -575,6 +616,57 @@
   const fileInputEl  = document.getElementById('file-input');
   const statusDotEl  = document.getElementById('status-dot');
   const statusTextEl = document.getElementById('status-text');
+  const previewEl = document.getElementById('capture-preview');
+  const cameraUrlEl = document.getElementById('camera-url');
+  const cameraDotEl = document.getElementById('camera-state-dot');
+  const cameraStateEl = document.getElementById('camera-state-text');
+  const cameraModelEl = document.getElementById('camera-model');
+  const cameraResolutionEl = document.getElementById('camera-resolution');
+  const filenameEl = document.getElementById('capture-filename');
+  const saveButtonEl = document.getElementById('btn-save');
+
+  function setCameraState(text, color, connected){
+    cameraStateEl.textContent = text;
+    cameraDotEl.style.background = color;
+    cameraConnected = connected;
+    document.getElementById('btn-capture').disabled = !connected;
+  }
+
+  function apiUrl(path){
+    return `${cameraUrl.replace(/\/$/, '')}${path}`;
+  }
+
+  async function refreshStatus(){
+    if(!cameraUrl) return;
+    try{
+      const response = await fetch(apiUrl('/api/status'), {signal: AbortSignal.timeout(5000)});
+      if(!response.ok) throw new Error('Status request failed');
+      const data = await response.json();
+      cameraModelEl.textContent = data.camera_model || '—';
+      const size = data.resolution || {};
+      cameraResolutionEl.textContent = size.width && size.height ? `${size.width} x ${size.height}` : '—';
+      setCameraState(data.ready ? 'Connected · Ready' : 'Connected · Camera unavailable', data.ready ? 'var(--teal)' : 'var(--amber)', Boolean(data.ready));
+    }catch(error){
+      setCameraState('Connection lost', 'var(--rust)', false);
+    }
+  }
+
+  async function connectCamera(){
+    cameraUrl = cameraUrlEl.value.trim().replace(/\/$/, '');
+    if(!cameraUrl){ setCameraState('Enter a camera endpoint', 'var(--rust)', false); return; }
+    setCameraState('Connecting...', 'var(--amber)', false);
+    await refreshStatus();
+    clearInterval(statusTimer);
+    statusTimer = setInterval(refreshStatus, 10000);
+  }
+
+  function disconnectCamera(){
+    clearInterval(statusTimer);
+    cameraUrl = '';
+    setCameraState('Disconnected', 'var(--muted)', false);
+    cameraModelEl.textContent = '—';
+    cameraResolutionEl.textContent = '—';
+  }
 
   // Central function: every part of the UI reads from `imageLoaded`.
   function updateUIState(){
@@ -595,17 +687,79 @@
 
     // Status line
     statusDotEl.style.background = imageLoaded ? 'var(--teal)' : 'var(--muted)';
-    statusTextEl.textContent = imageLoaded ? 'Image loaded' : 'Ready';
+    statusTextEl.textContent = imageLoaded ? 'Image loaded' : (cameraConnected ? 'Camera ready' : 'Ready');
+    saveButtonEl.disabled = !imageLoaded;
   }
 
-  function loadImage(){
+  function loadImage(url){
     imageLoaded = true;
+    if(url){
+      imageUrl = url;
+      previewEl.src = url;
+      loadedCopyEl.classList.add('has-preview');
+    }
     updateUIState();
   }
 
   function removeImage(){
     imageLoaded = false;
+    if(imageUrl) URL.revokeObjectURL(imageUrl);
+    imageUrl = '';
+    previewEl.removeAttribute('src');
+    loadedCopyEl.classList.remove('has-preview');
     updateUIState();
+  }
+
+  async function captureFromCamera(){
+    if(!cameraConnected || !cameraUrl) return;
+    const button = document.getElementById('btn-capture');
+    button.disabled = true;
+    statusTextEl.textContent = 'Capturing...';
+    try{
+      const response = await fetch(apiUrl('/api/capture'), {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({filename: filenameEl.value.trim() || undefined}),
+        signal: AbortSignal.timeout(35000)
+      });
+      if(!response.ok){
+        const error = await response.json().catch(()=>({error: 'Capture failed'}));
+        throw new Error(error.error || 'Capture failed');
+      }
+      const blob = await response.blob();
+      loadImage(URL.createObjectURL(blob));
+      const width = response.headers.get('X-Capture-Width');
+      const height = response.headers.get('X-Capture-Height');
+      if(width && height) cameraResolutionEl.textContent = `${width} x ${height}`;
+      statusTextEl.textContent = `Captured ${Math.round(blob.size / 1024)} KB`;
+    }catch(error){
+      statusTextEl.textContent = error.name === 'TimeoutError' ? 'Request timeout' : error.message;
+      setCameraState(error.name === 'TimeoutError' ? 'Request timeout' : 'Connection lost', 'var(--rust)', false);
+    }finally{
+      button.disabled = !cameraConnected;
+      updateUIState();
+    }
+  }
+
+  async function saveImage(){
+    if(!imageUrl) return;
+    const filename = filenameEl.value.trim() || `IMG_${new Date().toISOString().replace(/[-:TZ.]/g, '').slice(0, 14)}.jpg`;
+    try{
+      if(window.showSaveFilePicker){
+        const handle = await window.showSaveFilePicker({suggestedName: filename, types: [{description: 'JPEG image', accept: {'image/jpeg': ['.jpg']}}]});
+        const writable = await handle.createWritable();
+        await writable.write(await fetch(imageUrl).then(response => response.blob()));
+        await writable.close();
+      }else{
+        const link = document.createElement('a');
+        link.href = imageUrl;
+        link.download = filename;
+        link.click();
+      }
+      statusTextEl.textContent = `Saved ${filename}`;
+    }catch(error){
+      if(error.name !== 'AbortError') statusTextEl.textContent = 'Unable to save image';
+    }
   }
 
   // Upload Image -> opens the file picker; a chosen file marks the image loaded
@@ -613,13 +767,15 @@
   document.getElementById('btn-select-image').addEventListener('click', ()=> fileInputEl.click());
   fileInputEl.addEventListener('change', ()=>{
     if(fileInputEl.files && fileInputEl.files.length){
-      loadImage();
+      loadImage(URL.createObjectURL(fileInputEl.files[0]));
     }
   });
 
-  // Capture from Camera / Generate Synthetic Image both result in a loaded image
-  document.getElementById('btn-capture').addEventListener('click', loadImage);
-  document.getElementById('btn-generate').addEventListener('click', loadImage);
+  document.getElementById('btn-capture').addEventListener('click', captureFromCamera);
+  document.getElementById('btn-connect').addEventListener('click', connectCamera);
+  document.getElementById('btn-disconnect').addEventListener('click', disconnectCamera);
+  saveButtonEl.addEventListener('click', saveImage);
+  document.getElementById('btn-generate').addEventListener('click', ()=> loadImage());
 
   // Remove image -> back to empty state
   document.getElementById('btn-remove-image').addEventListener('click', removeImage);
@@ -632,7 +788,8 @@
   canvasEl.addEventListener('drop', e=>{
     e.preventDefault();
     if(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length){
-      loadImage();
+      const file = e.dataTransfer.files[0];
+      if(file.type.startsWith('image/')) loadImage(URL.createObjectURL(file));
     }
   });
 
